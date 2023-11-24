@@ -3,7 +3,7 @@ import { create } from "zustand";
 
 interface PlayerStore{
     ids: string[];
-    activeId?: String;
+    activeId?: string;
     setId: (id: string) => void;
     setIds: (ids: string[]) => void;
     reset: () => void;
