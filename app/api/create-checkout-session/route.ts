@@ -1,54 +1,59 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from "next/headers";
-import { NextResponse } from 'next/server';
-import Stripe from 'stripe';
+import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import { headers, cookies } from "next/headers";
+import { NextResponse } from "next/server";
+import { stripe } from "@/libs/stripe";
+import { getURL } from "@/libs/helpers";
 
-import { stripe } from '@/libs/stripe';
-import { getURL } from '@/libs/helpers';
-import { createOrRetrieveCustomer } from '@/libs/supabaseAdmin';
+import { createOrRetrieveCustomer } from "@/libs/supabaseAdmin";
 
 export async function POST(
-    request: Request
+  request: Request
 ){
-    const { price, quantity = 1, metadata = {} } = await request.json();
-    try{
-        const supabase = createRouteHandlerClient({
-            cookies
-        });
+  const { price, quantity = 1, metadata = {} } = await request.json();
+  
+  try {
+    const supabase = createRouteHandlerClient({
+      cookies,
+    });
+    
+    const { data: { user } } = await supabase.auth.getUser();
 
-        const { data: { user } } = await supabase.auth.getUser();
-
-        const customer = await createOrRetrieveCustomer({
-            uuid: user?.id || '',
-            email: user?.email || ''
-        });
-
-        // Use type assertion to bypass TypeScript checking
-        const sessionParams = {
-            billing_address_collection: 'required',
-            customer,
-            line_items: [
-                {
-                    price: price.id,
-                    quantity
-                }
-            ],
-            mode: 'subscription',
-            allow_promotion_codes: true,
-            subscription_data: {
-                trial_from_plan: true,
-                metadata
-            },
-            payment_method_collection: 'always', // Modern replacement for payment_method_types
-            success_url: `${getURL()}/account`,
-            cancel_url: `${getURL()}`
-        } as Stripe.Checkout.SessionCreateParams;
-
-        const session = await stripe.checkout.sessions.create(sessionParams);
-
-        return NextResponse.json({sessionId: session.id});
-    } catch(error: any){
-        console.log(error);
-        return new NextResponse('Internal Error', { status: 500});
+    if (!user) {
+      return new NextResponse('User not found', { status: 401 });
     }
+
+    const customer = await createOrRetrieveCustomer({
+      uuid: user.id || '',
+      email: user.email || ''
+    });
+
+    if (!price) {
+      return new NextResponse('Price ID is required', { status: 400 });
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      billing_address_collection: 'required',
+      customer,
+      line_items: [
+        {
+          price: price.id,
+          quantity
+        }
+      ],
+      mode: 'subscription',
+      allow_promotion_codes: true,
+      subscription_data: {
+        trial_period_days: 30,
+        metadata
+      },
+      success_url: `${getURL()}/account`,
+      cancel_url: `${getURL()}/`
+    });
+
+    return NextResponse.json({ sessionId: session.id });
+  } catch(error: any) {
+    console.log(error);
+    return new NextResponse('Internal Error', { status: 500 });
+  }
 }

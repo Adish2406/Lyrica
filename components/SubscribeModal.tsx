@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 
 import useSubscribeModal from '@/hooks/useSubscribeModal';
@@ -26,14 +26,23 @@ const formatPrice = (price: Price) => {
   return priceString;
 };
 
-
 const SubscribeModal: React.FC<SubscribeModalProps> = ({
   products
 }) => {
   const subscribeModal = useSubscribeModal();
   const { user, isLoading, subscription } = useUser();
-
   const [priceIdLoading, setPriceIdLoading] = useState<string>();
+  const [availableProducts, setAvailableProducts] = useState<ProductWithPrice[]>([]);
+
+  useEffect(() => {
+    if (products && products.length > 0) {
+      // Filter products to only include those with valid prices
+      const validProducts = products.filter(product => 
+        product.prices && product.prices.length > 0
+      );
+      setAvailableProducts(validProducts);
+    }
+  }, [products]);
 
   const onChange = (open: boolean) => {
     if (!open) {
@@ -43,6 +52,7 @@ const SubscribeModal: React.FC<SubscribeModalProps> = ({
 
   const handleCheckout = async (price: Price) => {
     setPriceIdLoading(price.id);
+    
     if (!user) {
       setPriceIdLoading(undefined);
       return toast.error('Must be logged in');
@@ -60,10 +70,18 @@ const SubscribeModal: React.FC<SubscribeModalProps> = ({
       });
 
       const stripe = await getStripe();
-      stripe?.redirectToCheckout({ sessionId });
+      if (!stripe) {
+        throw new Error('Stripe failed to initialize');
+      }
+      
+      const { error } = await stripe.redirectToCheckout({ sessionId });
+      
+      if (error) {
+        throw error;
+      }
     } catch (error) {
       console.error('Checkout error:', error);
-      return toast.error((error as Error)?.message);
+      toast.error((error as Error)?.message || 'Something went wrong');
     } finally {
       setPriceIdLoading(undefined);
     }
@@ -81,10 +99,10 @@ const SubscribeModal: React.FC<SubscribeModalProps> = ({
         Already subscribed.
       </div>
     );
-  } else if (products && products.length > 0) {
+  } else if (availableProducts.length > 0) {
     content = (
       <div>
-        {products.map((product) => {
+        {availableProducts.map((product) => {
           if (!product.prices?.length) {
             return (
               <div key={product.id}>
@@ -107,9 +125,6 @@ const SubscribeModal: React.FC<SubscribeModalProps> = ({
       </div>
     );
   }
-
-  // For debugging
-  console.log('Products:', products);
 
   return (
     <Modal

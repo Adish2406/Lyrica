@@ -3,24 +3,23 @@ import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 
 const getActiveProductWithPrices = async (): Promise<ProductWithPrice[]> => {
-    const supabase = createServerComponentClient({
-        cookies: cookies
-    });
+  const supabase = createServerComponentClient({
+    cookies: cookies
+  });
 
-    const {data, error} = await supabase
+  const { data, error } = await supabase
     .from('products')
-    .select('*,, prices(*)')
+    .select('*, prices(*)')
     .eq('active', true)
     .eq('prices.active', true)
     .order('metadata->index')
-    .order('unit_amount', { foreignTable: 'prices'});
+    .order('unit_amount', { referencedTable: 'prices' });
 
-    if(error){
-        console.log(error);
-    }
+  if (error) {
+    console.log(error);
+  }
 
-    return (data as any) || [];
-
+  return (data as any) || [];
 };
 
 export default getActiveProductWithPrices;
