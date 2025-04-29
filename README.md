@@ -2,7 +2,7 @@
 
 **Lyrica** is a modern, minimalist music streaming web app inspired by Spotify. Built with Next.js and TypeScript, it offers a clean UI, responsive design, seamless audio playback, and integrates third-party services like **Stripe** for payments and **Supabase** for authentication and database functionality.
 
-- **Live Demo**: [https://lyrica-sable-eta.vercel.app](https://lyrica-sable-eta.vercel.app)
+- **Live Demo**: [https://lyrica-adish-gangras-projects.vercel.app/](https://lyrica-adish-gangras-projects.vercel.app/)
 - **GitHub Repository**: [github.com/Adish2406/lyrica](https://github.com/Adish2406/lyrica)
 
 ---
