@@ -62,6 +62,7 @@ const SubscribeModal: React.FC<SubscribeModalProps> = ({
       const stripe = await getStripe();
       stripe?.redirectToCheckout({ sessionId });
     } catch (error) {
+      console.error('Checkout error:', error);
       return toast.error((error as Error)?.message);
     } finally {
       setPriceIdLoading(undefined);
@@ -72,9 +73,15 @@ const SubscribeModal: React.FC<SubscribeModalProps> = ({
     <div className="text-center">
       No products available.
     </div>
-  )
+  );
 
-  if (products.length) {
+  if (subscription) {
+    content = (
+      <div className="text-center">
+        Already subscribed.
+      </div>
+    );
+  } else if (products && products.length > 0) {
     content = (
       <div>
         {products.map((product) => {
@@ -95,19 +102,14 @@ const SubscribeModal: React.FC<SubscribeModalProps> = ({
             >
               {`Subscribe for ${formatPrice(price)} a ${price.interval}`}
             </Button>
-          ))
+          ));
         })}
       </div>
-    )
+    );
   }
 
-  if (subscription) {
-    content = (
-      <div className="text-center">
-        Already subscribed.
-      </div>
-    )
-  }
+  // For debugging
+  console.log('Products:', products);
 
   return (
     <Modal

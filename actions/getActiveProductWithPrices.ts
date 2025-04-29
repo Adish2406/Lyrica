@@ -2,13 +2,13 @@ import { ProductWithPrice } from "@/types";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 
-const getProductWithPrices = async (): Promise<ProductWithPrice[]> => {
+const getActiveProductWithPrices = async (): Promise<ProductWithPrice[]> => {
     const supabase = createServerComponentClient({
         cookies: cookies
     });
 
     const {data, error} = await supabase
-    .from('prodcuts')
+    .from('products')
     .select('*,, prices(*)')
     .eq('active', true)
     .eq('prices.active', true)
@@ -23,4 +23,4 @@ const getProductWithPrices = async (): Promise<ProductWithPrice[]> => {
 
 };
 
-export default getProductWithPrices;
+export default getActiveProductWithPrices;
