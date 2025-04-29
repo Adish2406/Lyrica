@@ -11,15 +11,16 @@ import useAuthModal from "@/hooks/useAuthModal";
 
 interface LikeButtonProps {
   songId: string;
-};
+  iconSize?: number; // Add this prop to control icon size
+}
 
-const LikeButton: React.FC<LikeButtonProps> = ({
-  songId
+const LikeButton: React.FC<LikeButtonProps> = ({ 
+  songId,
+  iconSize = 25 // Default size
 }) => {
   const router = useRouter();
-  const {
-    supabaseClient
-  } = useSessionContext();
+  const { supabaseClient } = useSessionContext();
+  
   const authModal = useAuthModal();
   const { user } = useUser();
 
@@ -93,7 +94,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
       "
       onClick={handleLike}
     >
-      <Icon color={isLiked ? '#22c55e' : 'white'} size={25} />
+      <Icon color={isLiked ? '#22c55e' : 'white'} size={iconSize} />
     </button>
   );
 }

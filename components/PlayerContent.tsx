@@ -1,18 +1,19 @@
 "use client";
 
-import useSound from "use-sound";
 import { useEffect, useState } from "react";
 import { BsPauseFill, BsPlayFill } from "react-icons/bs";
-import { HiSpeakerWave, HiSpeakerXMark } from "react-icons/hi2";
 import { AiFillStepBackward, AiFillStepForward } from "react-icons/ai";
+import { HiSpeakerWave, HiSpeakerXMark } from "react-icons/hi2";
+import { RiFullscreenFill } from "react-icons/ri";
+import useSound from "use-sound";
 
 import { Song } from "@/types";
-import usePlayer from "@/hooks/usePlayer";
-
-import LikeButton from "./LikeButton";
 import MediaItem from "./MediaItem";
+import LikeButton from "./LikeButton";
 import Slider from "./Slider";
-
+import usePlayer from "@/hooks/usePlayer";
+import PlayerSlider from "./PlayerSlider";
+import MobilePlayer from "./MobilePlayer";
 
 interface PlayerContentProps {
   song: Song;
@@ -26,6 +27,9 @@ const PlayerContent: React.FC<PlayerContentProps> = ({
   const player = usePlayer();
   const [volume, setVolume] = useState(1);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [showMobilePlayer, setShowMobilePlayer] = useState(false);
 
   const Icon = isPlaying ? BsPauseFill : BsPlayFill;
   const VolumeIcon = volume === 0 ? HiSpeakerXMark : HiSpeakerWave;
@@ -70,9 +74,26 @@ const PlayerContent: React.FC<PlayerContentProps> = ({
         onPlayNext();
       },
       onpause: () => setIsPlaying(false),
-      format: ['mp3']
+      format: ['mp3'],
+      onload: () => {
+        setDuration(sound?.duration() || 0);
+      }
     }
   );
+
+  useEffect(() => {
+    let timerId: number;
+    
+    if (isPlaying && sound) {
+      timerId = window.setInterval(() => {
+        setCurrentTime(sound.seek());
+      }, 100);
+    }
+    
+    return () => {
+      clearInterval(timerId);
+    };
+  }, [isPlaying, sound]);
 
   useEffect(() => {
     sound?.play();
@@ -98,8 +119,30 @@ const PlayerContent: React.FC<PlayerContentProps> = ({
     }
   }
 
-  return ( 
-    <div className="grid grid-cols-2 md:grid-cols-3 h-full">
+  const handleSliderChange = (value: number) => {
+    if (sound) {
+      sound.seek(value);
+      setCurrentTime(value);
+    }
+  };
+
+  return (
+    <>
+      {showMobilePlayer && (
+        <MobilePlayer
+          song={song}
+          isPlaying={isPlaying}
+          currentTime={currentTime}
+          duration={duration}
+          onSeek={handleSliderChange}
+          onTogglePlay={handlePlay}
+          onPlayNext={onPlayNext}
+          onPlayPrevious={onPlayPrevious}
+          onClose={() => setShowMobilePlayer(false)}
+        />
+      )}
+      
+      <div className="grid grid-cols-2 md:grid-cols-3 h-full">
         <div className="flex w-full justify-start">
           <div className="flex items-center gap-x-4">
             <MediaItem data={song} />
@@ -115,8 +158,14 @@ const PlayerContent: React.FC<PlayerContentProps> = ({
             w-full 
             justify-end 
             items-center
+            gap-x-3
           "
         >
+          <RiFullscreenFill
+            onClick={() => setShowMobilePlayer(true)}
+            size={26}
+            className="text-neutral-400 cursor-pointer hover:text-white"
+          />
           <div 
             onClick={handlePlay} 
             className="
@@ -145,44 +194,55 @@ const PlayerContent: React.FC<PlayerContentProps> = ({
             w-full 
             max-w-[722px] 
             gap-x-6
+            flex-col
           "
         >
-          <AiFillStepBackward
-            onClick={onPlayPrevious}
-            size={30} 
-            className="
-              text-neutral-400 
-              cursor-pointer 
-              hover:text-white 
-              transition
-            "
-          />
-          <div 
-            onClick={handlePlay} 
-            className="
-              flex 
-              items-center 
-              justify-center
-              h-10
-              w-10 
-              rounded-full 
-              bg-white 
-              p-1 
-              cursor-pointer
-            "
-          >
-            <Icon size={30} className="text-black" />
+          <div className="flex items-center justify-center gap-x-6 w-full">
+            <AiFillStepBackward
+              onClick={onPlayPrevious}
+              size={30} 
+              className="
+                text-neutral-400 
+                cursor-pointer 
+                hover:text-white 
+                transition
+              "
+            />
+            <div 
+              onClick={handlePlay} 
+              className="
+                flex 
+                items-center 
+                justify-center
+                h-10
+                w-10 
+                rounded-full 
+                bg-white 
+                p-1 
+                cursor-pointer
+              "
+            >
+              <Icon size={30} className="text-black" />
+            </div>
+            <AiFillStepForward
+              onClick={onPlayNext}
+              size={30} 
+              className="
+                text-neutral-400 
+                cursor-pointer 
+                hover:text-white 
+                transition
+              " 
+            />
           </div>
-          <AiFillStepForward
-            onClick={onPlayNext}
-            size={30} 
-            className="
-              text-neutral-400 
-              cursor-pointer 
-              hover:text-white 
-              transition
-            " 
-          />
+          <div className="w-full mt-1">
+            <PlayerSlider 
+              value={currentTime}
+              onChange={handleSliderChange}
+              max={duration}
+              song={song}
+            />
+          </div>
         </div>
 
         <div className="hidden md:flex w-full justify-end pr-2">
@@ -198,9 +258,9 @@ const PlayerContent: React.FC<PlayerContentProps> = ({
             />
           </div>
         </div>
-
       </div>
-   );
+    </>
+  );
 }
  
 export default PlayerContent;
