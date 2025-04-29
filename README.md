@@ -1,6 +1,6 @@
 # 🎵 Lyrica
 
-**Lyrica** is a modern, minimalist music streaming web app inspired by Spotify. Built with Next.js and TypeScript, it offers a clean UI, responsive design, and seamless audio playback.
+**Lyrica** is a modern, minimalist music streaming web app inspired by Spotify. Built with Next.js and TypeScript, it offers a clean UI, responsive design, seamless audio playback, and integrates third-party services like **Stripe** for payments and **Supabase** for authentication and database functionality.
 
 - **Live Demo**: [https://lyrica-sable-eta.vercel.app](https://lyrica-sable-eta.vercel.app)
 - **GitHub Repository**: [github.com/Adish2406/lyrica](https://github.com/Adish2406/lyrica)
@@ -13,6 +13,8 @@
 - 🎨 Sleek and responsive UI
 - 🧱 Navigation with React Router
 - ⚡ Built with Next.js and TypeScript
+- ✉️ User authentication and session management via Supabase
+- 💳 Secure payments and subscriptions via Stripe
 - ☁️ Deployed on Vercel
 
 ---
@@ -25,6 +27,8 @@ Ensure you have the following installed:
 
 - **Node.js** (v14 or later)
 - **npm** (v6 or later)
+- A **Supabase account** and project
+- A **Stripe account** with a test product
 
 ### Installation
 
@@ -46,7 +50,22 @@ Ensure you have the following installed:
    npm install
    ```
 
-4. **Start the development server**:
+4. **Configure environment variables**:
+
+   Create a `.env.local` file and add the following:
+
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+   SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+   STRIPE_SECRET_KEY=your_stripe_secret_key
+   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+   STRIPE_WEBHOOK_SECRET=your_webhook_secret
+   NEXT_PUBLIC_APP_URL=http://localhost:3000
+   ```
+
+5. **Start the development server**:
 
    ```bash
    npm run dev
@@ -70,7 +89,7 @@ This project is deployed on [Vercel](https://vercel.com/). To deploy your own ve
 
 1. **Fork the repository** to your GitHub account.
 2. **Sign in to Vercel** and import your forked repository.
-3. **Configure the project settings** as needed.
+3. **Configure the project settings**, including environment variables.
 4. **Deploy** the project. Vercel will handle the build and deployment process.
 
 ---
@@ -85,6 +104,7 @@ lyrica/
 │   ├── pages/          # Next.js pages
 │   ├── styles/         # CSS/SASS files
 │   └── utils/          # Utility functions
+├── .env.local          # Environment variables
 ├── .gitignore
 ├── package.json
 ├── README.md
