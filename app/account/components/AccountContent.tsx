@@ -41,7 +41,7 @@ const AccountContent = () => {
         <p>No active plan.</p>
         <Button 
           onClick={subscribeModal.onOpen}
-          className="w-[300px]"
+          className="bg-yellow-400 w-[300px]"
         >
           Subscribe
         </Button>

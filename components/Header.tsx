@@ -38,11 +38,11 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
 
   return (
     <div
-      className={twMerge(
+      className={twMerge(  // change the gradient
         `
         h-fit
         bg-gradient-to-b
-        from-emerald-800
+        from-yellow-800
         p-6
         
         `,
